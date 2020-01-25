@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+	<flow name="get-employee-details" doc:id="22626a3b-c996-4234-9f44-880b711b1aad" >
+		<logger level="INFO" doc:name="employee- flow-started" doc:id="fb28b646-7bc0-412f-932c-bbda3d3ae944" message='"employee- flow-started"'/>
+		<http:request method="GET" doc:name="request-employee-details" doc:id="75916d81-581b-4835-bacb-2d1d8ec5fe15" path="/employees" config-ref="HTTP_Request_configuration1"/>
+		<logger level="INFO" doc:name="employee- flow-started- Ended" doc:id="a5e4ff86-c8e5-4e66-900f-55f9254fc74f" message='"employee- flow-ended"'/>
+	</flow>
+	<flow name="get-employee" doc:id="9e6ccda2-423c-4513-a94e-084c2c051d23" >
+		<logger level="INFO" doc:name="get-employee Flow Started" doc:id="ea66dba3-683d-4f35-9130-0b3791328b43" message="mf-get-employee Flow Started"/>
+		<flow-ref doc:name="request-employee-flow" doc:id="2f571723-9bef-46c7-acdc-ee6e00a72b8b" name="get-employee-details" targetValue="#[[payload]]"/>
+		<ee:transform doc:name="json payload" doc:id="edf54963-38c6-45ca-9713-160c72b8aabd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.data map {
+      "id": $.id,
+      "employee_name": $.employee_name,
+      "employee_salary": $.employee_salary,
+      "employee_age": $.employee_age,
+      "profile_image": $.profile_image
+    }]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<batch:job jobName="implementationBatch_Job" doc:id="232e1638-6213-4938-af4d-9204d7ee66cf" >
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="7af52000-bb20-4ab3-b24a-338e62ed9c70" >
+					<flow-ref doc:name="insert-into-db-flow" doc:id="af66d6d8-154f-4ba4-b94c-4b5b8dd0995e" name="insert-into-db-subflow"/>
+				</batch:step>
+			</batch:process-records>
+		</batch:job>
+		<os:store doc:id="b31f575a-33e1-4540-96e2-a1bd75e92a46" key="employee_id_name" doc:name="Store id and name">
+			<os:value ><![CDATA[#[{
+ "id" : payload.id ,
+ "name" : payload.employee_name
+}]]]></os:value>
+		</os:store>
+		<ee:transform doc:name="Transform Message" doc:id="60ffc250-7eed-4a17-a415-08388f92bf19" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="mf-get-employee Flow Ended" doc:id="9437b494-21b8-4264-9142-2e1cc08a3db1" message="mf-get-employee Flow Ended"/>
+	</flow>
+	<sub-flow name="insert-into-db-subflow" doc:id="6870d5a2-3702-4227-8ffd-74998e729538" >
+		<logger level="INFO" doc:name="database-insert Flow Started" doc:id="6f4f0c37-c898-45f5-b7b6-20b98771f3b7" message="database-insert Flow Started"/>
+		<db:insert doc:name="Insert into employee" doc:id="6ef1c6d5-3ad5-428b-8f49-d6f7fe60a021" config-ref="Database_Config1">
+			<db:sql>insert into employee values(:id,:employee_name,:employee_salary,:employee_age)</db:sql>
+			<db:input-parameters ><![CDATA[#[{
+      "id": payload.id,
+      "employee_name": payload.employee_name,
+      "employee_salary": payload.employee_salary,
+      "employee_age": payload.employee_age
+    }]]]></db:input-parameters>
+		</db:insert>
+		<logger level="INFO" doc:name="database-insert Flow Ended" doc:id="c36a1744-ba57-46da-bac7-fb947bef3475" message="database-insert Flow Ended"/>
+	</sub-flow>
+	<flow name="insert-employee-flow" doc:id="3e00cc91-fffb-42d4-b854-4c2562b9b03d" >
+		<logger level="INFO" doc:name="insert-employee Flow Started" doc:id="dd2ffe9f-b10f-418d-8425-005f742ced25" message='"insert-employee Flow Started"'/>
+		<flow-ref doc:name="database-insert-flow" doc:id="5286be52-add7-43af-90f2-2cf2248e9cc0" name="insert-into-db-subflow"/>
+		<flow-ref doc:name="email-notification" doc:id="4aa90905-6571-4e14-bf37-f53e814e3357" name="email-notification-subflow"/>
+		<logger level="INFO" doc:name="insert-employee Flow Ended" doc:id="92bd960b-b3d5-4e6c-b5b8-c6717939c22b" message='"insert-employee Flow Ended"'/>
+	</flow>
+	<sub-flow name="email-notification-subflow" doc:id="36168f03-0326-4e33-a9ea-d9c505e932fe" >
+		<logger level="INFO" doc:name="sf-email-notification Flow Started" doc:id="b3a1b28c-6237-4af8-9528-b97e6c8cd8ed" message="sf-email-notification Flow Started"/>
+		<email:send doc:name="Send Email Notification" doc:id="074f24b3-9966-49ef-933b-67be941158e4" toAddresses="harish.ravichandran@apisero.com" config-ref="Email_SMTP1" fromAddress="harish.ravichandran@apisero.com" subject="Successful Insertion into Database">
+			<email:body contentType="spplication/csv" />
+			<email:attachments ><![CDATA[#[{
+"employeedata.csv" : payload
+
+}]]]></email:attachments>
+		</email:send>
+		<logger level="INFO" doc:name="sf-email-notification Flow Ended" doc:id="ce0a4648-2867-4138-8a7d-9fddfb261985" message="sf-email-notification Flow Ended"/>
+	</sub-flow>
+</mule>

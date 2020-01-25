@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="d05db1aa-f761-4c07-8b87-77981a1a8a2f" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="39a50e63-2d65-4c0c-9fba-81262ab6790e" basePath="/api/v1">
+		<http:request-connection host="dummy.restapiexample.com" />
+	</http:request-config>
+	<db:config name="Database_Config1" doc:name="Database Config" doc:id="de988de9-7547-4d83-8752-6658af72c233" >
+		<db:my-sql-connection user="dbfashion" password="Password@1" database="lazyfashions" host=" www.db4free.net" port="3306"/>
+	</db:config>
+	<email:smtp-config name="Email_SMTP1" doc:name="Email SMTP" doc:id="f8043630-a396-416d-9087-354419f761e8" >
+		<email:smtp-connection host="smtp.gmail.com" user="harish.ravichandran@apisero.com" password="Kamatchi@1" >
+			<email:properties >
+				<email:property key="mail.smtp.starttls.enable" value="true" />
+			</email:properties>
+		</email:smtp-connection>
+	</email:smtp-config>
+</mule>

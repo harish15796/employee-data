@@ -1,0 +1,36 @@
+#%RAML 1.0
+baseUri: https://anypoint.mulesoft.com/mocking/api/v1/links/1f920fa3-ddf2-4e5f-a266-f1dc103333a2/ # 
+title: sys-employee-assessment
+version: v1.0
+mediaType: 
+  - application/json
+
+/get-employee:
+  get:
+    description:  get all employee details 
+    responses:
+      200:
+        body:
+          example:
+            !include examples/response/get-employee-resp-ex.raml
+/insert-employee:
+  post:
+    description:  insert data into DB
+    body:
+      application/json:
+        example:
+          !include examples/request/insert-employee-req-ex.raml
+    responses:
+      200:
+        body:
+          example:
+            !include examples/response/insert-employee-resp-ex.raml
+/get-by-id:
+  get:
+    headers:
+      If-Match: number
+    responses:
+      200:
+        body:
+          example:
+            !include examples/response/get-by-id-resp-ex.raml
